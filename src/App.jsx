@@ -89,10 +89,26 @@ function App() {
 
       const result = await apiResponse.json();
       // console.log(result); // Hugging Face result
+
+      if (result) {
+        fetch('http://localhost:3000/image', {
+          method: 'put',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: user.id,
+          }),
+        })
+          .then(response => response.json())
+          .then(count => {
+            setUser({
+              ...user,
+              entries: count,
+            })
+          });
+      }
       displayFaceBox(calculateFaceLocation(result));
     };
 
-    // console.log('click');
     sendImageToHuggingFaceWithFetch(input);
   }
 
@@ -122,7 +138,7 @@ function App() {
       { route === 'home' ?
         <>
           <Logo />
-          <Rank />
+          <Rank name={user.name} entries={user.entries}/>
           <ImageLinkForm
             onInputChange={onInputChange}
             onSubmit={onButtonSubmit}
@@ -130,7 +146,7 @@ function App() {
           <FaceRecognition imageUrl={imageUrl} boxes={boxes} />
         </> : (
           route === 'signin' ?
-          <Signin onRouteChange={onRouteChange} /> :
+          <Signin loadUser={loadUser} onRouteChange={onRouteChange} /> :
           <Register onRouteChange={onRouteChange} loadUser={loadUser}/>
         )
       }
