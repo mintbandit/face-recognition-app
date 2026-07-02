@@ -51,6 +51,13 @@ function App() {
   const [boxes, setBoxes] = useState([]);
   const [route, setRoute] = useState('signin');
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [user, setUser] = useState({
+    id: '',
+    name: '',
+    email: '',
+    entries: 0,
+    joined: '',
+  });
 
   const displayFaceBox = (boxes) => {
     setBoxes(boxes);
@@ -98,6 +105,16 @@ function App() {
     setRoute(route);
   }
 
+  const loadUser = (data) => {
+    setUser({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      entries: data.entries,
+      joined: data.joined,
+    });
+  }
+
   return (
     <div className="App">
       <ParticlesBG type="cobweb" bg={true} />
@@ -114,7 +131,7 @@ function App() {
         </> : (
           route === 'signin' ?
           <Signin onRouteChange={onRouteChange} /> :
-          <Register onRouteChange={onRouteChange} />
+          <Register onRouteChange={onRouteChange} loadUser={loadUser}/>
         )
       }
     </div>
