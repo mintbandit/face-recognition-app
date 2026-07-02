@@ -5,6 +5,8 @@ import Logo from "./components/Logo/Logo.jsx";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm.jsx";
 import Rank from "./components/Rank/Rank.jsx";
 import FaceRecognition from "./components/FaceRecognition/FaceRecognition.jsx";
+import Signin from "./components/Signin/Signin.jsx";
+import Register from "./components/Register/Register.jsx";
 import './App.css'
 
 const HUGGING_FACE_API_KEY = import.meta.env.VITE_HUGGING_FACE_API_KEY;
@@ -47,6 +49,8 @@ function App() {
   const [input, setInput] = useState();
   const [imageUrl, setImageUrl] = useState();
   const [boxes, setBoxes] = useState([]);
+  const [route, setRoute] = useState('signin');
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const displayFaceBox = (boxes) => {
     setBoxes(boxes);
@@ -85,17 +89,34 @@ function App() {
     sendImageToHuggingFaceWithFetch(input);
   }
 
+  const onRouteChange = (route) => {
+    if (route === 'signout') {
+      setIsSignedIn(false);
+    } else if ( route === 'home' ) {
+      setIsSignedIn(true);
+    }
+    setRoute(route);
+  }
+
   return (
     <div className="App">
-      <ParticlesBG type="cobweb" bg={true}/>
-      <Navigation />
-      <Logo />
-      <Rank />
-      <ImageLinkForm
-        onInputChange={onInputChange}
-        onSubmit={onButtonSubmit}
-      />
-      <FaceRecognition imageUrl={imageUrl} boxes={boxes}/>
+      <ParticlesBG type="cobweb" bg={true} />
+      <Navigation onRouteChange={onRouteChange} isSignedIn={isSignedIn} />
+      { route === 'home' ?
+        <>
+          <Logo />
+          <Rank />
+          <ImageLinkForm
+            onInputChange={onInputChange}
+            onSubmit={onButtonSubmit}
+          />
+          <FaceRecognition imageUrl={imageUrl} boxes={boxes} />
+        </> : (
+          route === 'signin' ?
+          <Signin onRouteChange={onRouteChange} /> :
+          <Register onRouteChange={onRouteChange} />
+        )
+      }
     </div>
   )
 }
