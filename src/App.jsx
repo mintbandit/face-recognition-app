@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ParticlesBG from 'particles-bg'
 import Navigation from "./components/Navigation/Navigation.jsx";
 import Logo from "./components/Logo/Logo.jsx";

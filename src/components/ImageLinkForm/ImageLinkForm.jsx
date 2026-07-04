@@ -1,4 +1,3 @@
-import React from 'react';
 import './ImageLinkForm.css';
 
 function ImageLinkForm({onInputChange, onSubmit}) {
