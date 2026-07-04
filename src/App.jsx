@@ -9,8 +9,6 @@ import Signin from "./components/Signin/Signin.jsx";
 import Register from "./components/Register/Register.jsx";
 import './App.css'
 
-const HUGGING_FACE_API_KEY = import.meta.env.VITE_HUGGING_FACE_API_KEY;
-
 const createHuggingFaceBoundingBox = (pixelBox, imageWidth, imageHeight) => {
   return {
     left_col: pixelBox.xmin / imageWidth,
@@ -32,7 +30,7 @@ const calculateFaceLocation = (data) => {
   const height = Number(image.height);
 
   // Loop through every person found and calculate their box
-  const boundingBoxes = personItems.map(person => {
+  return personItems.map(person => {
     const clarifaiFace = createHuggingFaceBoundingBox(person.box, originalWidth, originalHeight);
     return {
       leftCol: clarifaiFace.left_col * width,
@@ -41,8 +39,14 @@ const calculateFaceLocation = (data) => {
       bottomRow: height - (clarifaiFace.bottom_row * height)
     };
   });
+}
 
-  return boundingBoxes;
+const initialUserState = {
+  id: '',
+  name: '',
+  email: '',
+  entries: 0,
+  joined: '',
 }
 
 function App() {
@@ -51,13 +55,7 @@ function App() {
   const [boxes, setBoxes] = useState([]);
   const [route, setRoute] = useState('signin');
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const [user, setUser] = useState({
-    id: '',
-    name: '',
-    email: '',
-    entries: 0,
-    joined: '',
-  });
+  const [user, setUser] = useState(initialUserState);
 
   const displayFaceBox = (boxes) => {
     setBoxes(boxes);
@@ -71,50 +69,43 @@ function App() {
     setImageUrl(input);
     setBoxes([]);
 
-    const sendImageToHuggingFaceWithFetch = async (imageUrl) => {
-      const response = await fetch(imageUrl);
-      const imageBlob = await response.blob();
-      const contentType = response.headers.get("content-type");
-
-      const apiResponse = await fetch("https://router.huggingface.co/hf-inference/models/facebook/detr-resnet-50",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${HUGGING_FACE_API_KEY}`,
-            "Content-Type": contentType,
-          },
-          body: imageBlob,
-        },
-      );
-
-      const result = await apiResponse.json();
-      // console.log(result); // Hugging Face result
-
-      if (result) {
-        fetch('http://localhost:3000/image', {
-          method: 'put',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: user.id,
-          }),
-        })
-          .then(response => response.json())
-          .then(count => {
-            setUser({
-              ...user,
-              entries: count,
+    fetch('http://localhost:3000/imageurl', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input,
+      }),
+    })
+      .then(response => response.json())
+      .then(response => {
+        if (response) {
+          fetch('http://localhost:3000/image', {
+            method: 'put',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: user.id,
+            }),
+          })
+            .then(response => response.json())
+            .then(count => {
+              setUser({
+                ...user,
+                entries: count,
+              })
             })
-          });
-      }
-      displayFaceBox(calculateFaceLocation(result));
-    };
-
-    sendImageToHuggingFaceWithFetch(input);
+            .catch(console.log);
+        }
+        displayFaceBox(calculateFaceLocation(response));
+      })
+      .catch(console.log);
   }
 
   const onRouteChange = (route) => {
     if (route === 'signout') {
       setIsSignedIn(false);
+      setBoxes([]);
+      setUser(initialUserState);
+      setImageUrl('');
     } else if ( route === 'home' ) {
       setIsSignedIn(true);
     }
